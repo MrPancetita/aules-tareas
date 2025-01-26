@@ -83,28 +83,29 @@ response = session.post(courses_url, json=courses_data_payload)
 courses_data = response.json()
 
 # Print the courses data
-print(courses_data)
+# print(courses_data)
 
 pattern = re.compile(r'(https\:\/\/aules.edu.gva.es\/eso03\/course\/view.php\?id=[0-9]+)">(.*)</a>')
-print(re.findall(pattern, returnPage))
 
-for courseURL, courseName in re.findall(pattern, returnPage):
-    result = courseURL.split("id=")
-    print(result)
-    if int(result[1]) not in config.cursosExclosos:
-        cprint(courseName, 'grey', 'on_cyan')
-        course_page_url = courseURL.split('eso03')[0] + 'eso03/mod/assign/index.php?id=' + result[1]
-        url = session.get(course_page_url)
-        returnPage = url.text
-        pattern2 = re.compile(r'(https\:\/\/aules[0-9]?.edu.gva.es\/eso03\/mod\/assign\/view.php\?id=[0-9]+)">(.*)</a>')
-        for tascaURL, tascaName in re.findall(pattern2, returnPage):
-            url = session.get(tascaURL)
-            returnPage3 = url.text
-            pattern3 = re.compile(r'(?:Necessiten qualificació|Pendientes por calificar|Needs grading)</td>\n<td [a-zA-Z=" 1]+>([0-9]+)</td>')
-            m = re.search(pattern3, returnPage3)
-            if m:
-                myQnt = m.group(1)
-                if int(myQnt) > 0:
-                    totalTasks += int(myQnt)
-                    print(" └>" + tascaName + ": " + m.group(1) + ' ' + tascaURL + '&action=grader' )
+for course in courses_data:
+    course_html = course['html']  # Assuming each course item has an 'html' key
+    for courseURL, courseName in re.findall(pattern, course_html):
+        result = courseURL.split("id=")
+        print(result)
+        if int(result[1]) not in config.cursosExclosos:
+            cprint(courseName, 'grey', 'on_cyan')
+            course_page_url = courseURL.split('eso03')[0] + 'eso03/mod/assign/index.php?id=' + result[1]
+            url = session.get(course_page_url)
+            returnPage = url.text
+            pattern2 = re.compile(r'(https\:\/\/aules[0-9]?.edu.gva.es\/eso03\/mod\/assign\/view.php\?id=[0-9]+)">(.*)</a>')
+            for tascaURL, tascaName in re.findall(pattern2, returnPage):
+                url = session.get(tascaURL)
+                returnPage3 = url.text
+                pattern3 = re.compile(r'(?:Necessiten qualificació|Pendientes por calificar|Needs grading)</td>\n<td [a-zA-Z=" 1]+>([0-9]+)</td>')
+                m = re.search(pattern3, returnPage3)
+                if m:
+                    myQnt = m.group(1)
+                    if int(myQnt) > 0:
+                        totalTasks += int(myQnt)
+                        print(" └>" + tascaName + ": " + m.group(1) + ' ' + tascaURL + '&action=grader' )
 cprint("Total de tasques per corregir: " + str(totalTasks), 'grey', 'on_green')
