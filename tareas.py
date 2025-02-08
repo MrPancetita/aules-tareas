@@ -2,7 +2,6 @@ import ssl, sys
 import requests
 from termcolor import cprint
 from requests.adapters import HTTPAdapter
-from urllib3.poolmanager import PoolManager
 import getpass;
 from bs4 import BeautifulSoup
 
