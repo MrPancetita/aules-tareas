@@ -1,12 +1,16 @@
-# Created by modifying the original idea of https://github.com/josepg
-
-import config, re, ssl, sys
+import ssl, sys
 import requests
 from termcolor import cprint
 from requests.adapters import HTTPAdapter
 from urllib3.poolmanager import PoolManager
 import getpass;
 from bs4 import BeautifulSoup
+
+class Course:
+    def __init__(self, id, name, url):
+        self.id = id
+        self.name = name
+        self.url = url
 
 
 class SSLAdapter(HTTPAdapter):
@@ -46,7 +50,7 @@ response = session.post(login_url, data=login_data)
 returnPage = response.text
 
 if 'loginerrormessage' in returnPage:
-    cprint("Error iniciant la sessió en aules", 'red', 'on_white')
+    cprint("Error iniciando la sesión en Aules", 'red', 'on_white')
     print(returnPage)
     sys.exit()
 
@@ -60,7 +64,6 @@ sesskey = soup.find('input', {'name': 'sesskey'})['value']
 
 # Print the sesskey
 print(f'Sesskey: {sesskey}')
-
 
 # Se deben capturar los cursos de https://aules.edu.gva.es/eso03/lib/ajax/service.php?sesskey=theactualkey&info=core_course_get_enrolled_courses_by_timeline_classification
 
@@ -79,33 +82,20 @@ courses_data_payload = [
         }
     }
 ]
+
 response = session.post(courses_url, json=courses_data_payload)
-courses_data = response.json()
+courses_data = response.json()[0]['data']['courses']
 
-# Print the courses data
-# print(courses_data)
-
-pattern = re.compile(r'(https\:\/\/aules.edu.gva.es\/eso03\/course\/view.php\?id=[0-9]+)">(.*)</a>')
+course_list = []
 
 for course in courses_data:
-    course_html = course['html']  # Assuming each course item has an 'html' key
-    for courseURL, courseName in re.findall(pattern, course_html):
-        result = courseURL.split("id=")
-        print(result)
-        if int(result[1]) not in config.cursosExclosos:
-            cprint(courseName, 'grey', 'on_cyan')
-            course_page_url = courseURL.split('eso03')[0] + 'eso03/mod/assign/index.php?id=' + result[1]
-            url = session.get(course_page_url)
-            returnPage = url.text
-            pattern2 = re.compile(r'(https\:\/\/aules[0-9]?.edu.gva.es\/eso03\/mod\/assign\/view.php\?id=[0-9]+)">(.*)</a>')
-            for tascaURL, tascaName in re.findall(pattern2, returnPage):
-                url = session.get(tascaURL)
-                returnPage3 = url.text
-                pattern3 = re.compile(r'(?:Necessiten qualificació|Pendientes por calificar|Needs grading)</td>\n<td [a-zA-Z=" 1]+>([0-9]+)</td>')
-                m = re.search(pattern3, returnPage3)
-                if m:
-                    myQnt = m.group(1)
-                    if int(myQnt) > 0:
-                        totalTasks += int(myQnt)
-                        print(" └>" + tascaName + ": " + m.group(1) + ' ' + tascaURL + '&action=grader' )
-cprint("Total de tasques per corregir: " + str(totalTasks), 'grey', 'on_green')
+    if course['visible'] == False:
+        continue
+    course_id = course['id']
+    course_name = course['fullname']
+    course_url = f"https://aules.edu.gva.es/eso03/course/view.php?id={course_id}"
+    course = Course(course_id, course_name, course_url)
+    course_list.append(course)
+    print(f"Course ID: {course_id}, Course Name: {course_name}, Course URL: {course_url}")
+
+# Hasta aquí recupero la lista de cursos... Ahora falta identificar las tareas de cada curso, saltar al grading y de ahí scrapeo del estado...
