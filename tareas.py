@@ -15,6 +15,9 @@ class Course:
     def add_task(self, task):
         self.tasks.append(task)
     
+    def to_csv_semicolon(self):
+        pass       
+
     def __str__(self):
         return f"\nCourse ID: {self.id}\nCourse Name: {self.name}\nCourse URL: {self.url}\n"
 
@@ -28,6 +31,10 @@ class Task:
     def add_submission(self, submission):
         self.submissions.append(submission)
 
+    def to_csv_semicolon(self):
+        for submission in self.submissions:
+            print(f"{self.id};{self.name};{self.url};{submission.to_csv_semicolon()}")
+
     def __str__(self):
         return f"\nTask ID: {self.id}\nTask Name: {self.name}\nTask URL: {self.url}\n"
 
@@ -38,6 +45,9 @@ class Submission:
         self.status = status
         self.date = date
         self.files = files
+
+    def to_csv_semicolon(self):
+        print(f"{self.student_name};{self.student_email};{self.status};{self.date};{self.files}")
     
     def __str__(self):
         return f"\nStudent Name: {self.student_name}\nStudent Email: {self.student_email}\nStatus: {self.status}\nDate: {self.date}\nFiles: {self.files}\n"
@@ -72,7 +82,8 @@ def get_tarea_grading(session, task):
         submission = Submission(student_name, student_email, status, date, files)
 
         # Muestra los resultados usando la clase Submission
-        print(submission)
+        print(f"Prueba to_csv: {submission.to_csv_semicolon()}")
+        #print(submission)
 
    
 
@@ -172,6 +183,7 @@ for course in course_list:
         print(f'Recuperando entregas de la tarea...')
         get_tarea_grading(session, task)  
         print('*' * 50)
+
     print('\n\n')
 
 
