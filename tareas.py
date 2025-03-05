@@ -116,10 +116,11 @@ def get_tarea_grading(session, task, db_session):
         student_name = fila.find('td', class_='c2').text.strip()
         student_email = fila.find('td', class_='c3').text.strip()
         status = fila.find('td', class_='c4').text.strip()
+        grade = fila.find('td', class_='c5').text.strip()[9:]
         date = fila.find('td', class_='c7').text.strip()
         files = fila.find('td', class_='c8').text.strip()
 
-        submission = Submission(student_name, student_email, status, date, files)
+        submission = Submission(student_name, student_email, status, grade, date, files)
         submission.task = task
         db_session.add(submission)
 

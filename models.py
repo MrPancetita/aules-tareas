@@ -36,14 +36,16 @@ class Submission(Base):
     student_name = Column(String)
     student_email = Column(String)
     status = Column(String)
+    grade = Column(String)
     date = Column(String)
     files = Column(String)
     task_id = Column(Integer, ForeignKey('tasks.id'))
     task = relationship('Task', back_populates='submissions')
 
-    def __init__(self, student_name, student_email, status, date, files):
+    def __init__(self, student_name, student_email, status, grade, date, files):
         self.student_name = student_name
         self.student_email = student_email
         self.status = status
+        self.grade = grade
         self.date = date
         self.files = files
