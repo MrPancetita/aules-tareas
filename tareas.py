@@ -85,6 +85,12 @@ engine = create_engine('sqlite:///aules_tareas.db')
 Session = sessionmaker(bind=engine)
 db_session = Session()
 
+# Delete existing data from tables
+db_session.query(Submission).delete()
+db_session.query(Task).delete()
+db_session.query(Course).delete()
+db_session.commit()
+
 course_list = []
 
 for entry in courses_data:
@@ -96,7 +102,7 @@ for entry in courses_data:
     course = Course(course_id, course_name, course_url)
     db_session.add(course)
     course_list.append(course)
-    print(course)
+    #print(course)
 
 def get_tarea_grading(session, task, db_session):
     task_id = task.id
@@ -116,7 +122,6 @@ def get_tarea_grading(session, task, db_session):
         submission = Submission(student_name, student_email, status, date, files)
         submission.task = task
         db_session.add(submission)
-        print(f"Prueba to_csv: {submission.to_csv_semicolon()}")
 
     db_session.commit()
 
